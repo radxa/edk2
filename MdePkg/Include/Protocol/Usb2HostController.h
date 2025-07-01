@@ -27,6 +27,7 @@ typedef struct _EFI_USB2_HC_PROTOCOL EFI_USB2_HC_PROTOCOL;
 typedef struct {
   UINT16    PortStatus;              ///< Contains current port status bitmap.
   UINT16    PortChangeStatus;        ///< Contains current port status change bitmap.
+  UINT32    PortRawStatus;           ///< raw port status
 } EFI_USB_PORT_STATUS;
 
 ///
@@ -67,7 +68,8 @@ typedef enum {
   EfiUsbPortEnableChange      = 17,
   EfiUsbPortSuspendChange     = 18,
   EfiUsbPortOverCurrentChange = 19,
-  EfiUsbPortResetChange       = 20
+  EfiUsbPortResetChange       = 20,
+  EfiUsbPortBhReset           = 21
 } EFI_USB_PORT_FEATURE;
 
 #define EFI_USB_SPEED_FULL   0x0000     ///< 12 Mb/s, USB 1.1 OHCI and UHCI HC.

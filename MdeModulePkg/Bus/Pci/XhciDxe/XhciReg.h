@@ -234,6 +234,7 @@ typedef union {
 #define XHC_PORTSC_PLC    BIT22                     // Port Link State Change
 #define XHC_PORTSC_CEC    BIT23                     // Port Config Error Change
 #define XHC_PORTSC_CAS    BIT24                     // Cold Attach Status
+#define XHC_PORTSC_WPR    BIT31                     // Warm Port Reset
 
 #define XHC_HUB_PORTSC_CCS    BIT0               // Hub's Current Connect Status
 #define XHC_HUB_PORTSC_PED    BIT1               // Hub's Port Enabled/Disabled
