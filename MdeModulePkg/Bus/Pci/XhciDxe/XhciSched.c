@@ -1106,6 +1106,8 @@ XhcCheckUrbResult (
   UINTN                 Index;
   UINT8                 TRBType;
   EFI_STATUS            Status;
+  UINT32             Offset;
+  UINT32             State;
   URB                   *AsyncUrb;
   URB                   *CheckedUrb;
   UINT64                XhcDequeue;
@@ -1194,6 +1196,9 @@ XhcCheckUrbResult (
         CheckedUrb->Result  |= EFI_USB_ERR_TIMEOUT;
         CheckedUrb->Finished = TRUE;
         DEBUG ((DEBUG_ERROR, "XhcCheckUrbResult: TRANSACTION_ERROR! Completecode = %x\n", EvtTrb->Completecode));
+        Offset = XHC_PORTSC_OFFSET + 0x10;
+        State  = XhcReadOpReg (Xhc, Offset);
+        XhcWriteOpReg (Xhc, Offset, State);
         goto EXIT;
 
       case TRB_COMPLETION_STOPPED:
