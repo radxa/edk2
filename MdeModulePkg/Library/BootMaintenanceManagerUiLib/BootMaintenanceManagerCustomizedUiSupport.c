@@ -120,6 +120,23 @@ BmmCreateTimeOutMenu (
   IN VOID            *StartOpCodeHandle
   )
 {
+  VOID    *DefaultOpCodeHandle;
+  UINT16  Timeout;
+
+  DefaultOpCodeHandle = HiiAllocateOpCodeHandle ();
+  ASSERT (DefaultOpCodeHandle != NULL);
+
+  // We cannot call PcdGet16 (PcdPlatformBootTimeOut),
+  // as it could be modified at run time.
+  Timeout = 5;
+
+  HiiCreateDefaultOpCode (
+    DefaultOpCodeHandle,
+    EFI_HII_DEFAULT_CLASS_STANDARD,
+    EFI_IFR_TYPE_NUM_SIZE_16,
+    Timeout
+    );
+
   HiiCreateNumericOpCode (
     StartOpCodeHandle,
     (EFI_QUESTION_ID)FORM_TIME_OUT_ID,
@@ -132,7 +149,7 @@ BmmCreateTimeOutMenu (
     0,
     65535,
     0,
-    NULL
+    DefaultOpCodeHandle
     );
 }
 
