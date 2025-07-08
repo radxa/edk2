@@ -27,8 +27,8 @@ formset
         prompt      = STRING_TOKEN(STR_DT_ACPI_SELECT_PROMPT),
         help        = STRING_TOKEN(STR_DT_ACPI_SELECT_HELP),
         flags       = NUMERIC_SIZE_1 | INTERACTIVE | RESET_REQUIRED,
-        option text = STRING_TOKEN(STR_DT_ACPI_SELECT_DT), value = DT_ACPI_SELECT_DT, flags = DEFAULT;
-        option text = STRING_TOKEN(STR_DT_ACPI_SELECT_ACPI), value = DT_ACPI_SELECT_ACPI, flags = 0;
+        option text = STRING_TOKEN(STR_DT_ACPI_SELECT_DT), value = DT_ACPI_SELECT_DT, flags = 0;
+        option text = STRING_TOKEN(STR_DT_ACPI_SELECT_ACPI), value = DT_ACPI_SELECT_ACPI, flags = DEFAULT;
     endoneof;
 
     subtitle text = STRING_TOKEN(STR_NULL_STRING);
