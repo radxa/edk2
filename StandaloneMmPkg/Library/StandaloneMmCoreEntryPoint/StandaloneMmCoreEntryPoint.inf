@@ -47,6 +47,7 @@
 
 [Guids]
   gMpInformationHobGuid
+  gNvramInformationHobGuid
   gEfiMmPeiMmramMemoryReserveGuid
   gEfiStandaloneMmNonSecureBufferGuid
   gEfiArmTfCpuDriverEpDescriptorGuid

@@ -47,6 +47,15 @@ typedef struct {
   EFI_SECURE_PARTITION_CPU_INFO    *CpuInfo;
 } EFI_SECURE_PARTITION_BOOT_INFO;
 
+typedef struct {
+  UINT64    VariableBase;
+  UINT64    FtwWorkingBase;
+  UINT64    FtwSpareBase;
+  UINT32    VariableSize;
+  UINT32    FtwWorkingSize;
+  UINT32    FtwSpareSize;
+} EFI_SECURE_PARTITION_FLASH_NVRAM_STORAGE_INFO;
+
 typedef
 EFI_STATUS
 (*PI_MM_ARM_TF_CPU_DRIVER_ENTRYPOINT) (

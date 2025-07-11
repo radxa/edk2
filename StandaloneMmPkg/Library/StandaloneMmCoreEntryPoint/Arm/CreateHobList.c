@@ -12,6 +12,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <PiPei.h>
 #include <Guid/MmramMemoryReserve.h>
 #include <Guid/MpInformation.h>
+#include <Guid/NvramInformation.h>
 
 #include <Library/Arm/StandaloneMmCoreEntryPoint.h>
 #include <Library/ArmMmuLib.h>
@@ -65,9 +66,12 @@ CreateHobListFromBootInfo (
   EFI_MMRAM_DESCRIPTOR             *MmramRanges;
   EFI_MMRAM_DESCRIPTOR             *NsCommBufMmramRange;
   MP_INFORMATION_HOB_DATA          *MpInformationHobData;
+  NVRAM_INFORMATION_HOB_DATA       *NvramInformationHobData;
   EFI_PROCESSOR_INFORMATION        *ProcInfoBuffer;
   EFI_SECURE_PARTITION_CPU_INFO    *CpuInfo;
   ARM_TF_CPU_DRIVER_EP_DESCRIPTOR  *CpuDriverEntryPointDesc;
+
+  EFI_SECURE_PARTITION_FLASH_NVRAM_STORAGE_INFO  *FlashNvramStorageInfo;
 
   // Create a hoblist with a PHIT and EOH
   HobStart = HobConstructor (
@@ -200,6 +204,21 @@ CreateHobListFromBootInfo (
   MmramRanges[5].CpuStart      = HobStart->EfiFreeMemoryBottom;
   MmramRanges[5].PhysicalSize  = HobStart->EfiFreeMemoryTop - HobStart->EfiFreeMemoryBottom;
   MmramRanges[5].RegionState   = EFI_CACHEABLE;
+
+  // Create a Guided HOB to tell the ARM TF CPU driver the location and length
+  // of the communication buffer shared with the Normal world.
+  NvramInformationHobData =  BuildGuidHob (
+                               &gNvramInformationHobGuid,
+                               sizeof (NVRAM_INFORMATION_HOB_DATA)
+                               );
+  FlashNvramStorageInfo = (EFI_SECURE_PARTITION_FLASH_NVRAM_STORAGE_INFO *)&CpuInfo[PayloadBootInfo->NumCpus];
+
+  NvramInformationHobData->VariableBase   = FlashNvramStorageInfo->VariableBase;
+  NvramInformationHobData->FtwWorkingBase = FlashNvramStorageInfo->FtwWorkingBase;
+  NvramInformationHobData->FtwSpareBase   = FlashNvramStorageInfo->FtwSpareBase;
+  NvramInformationHobData->VariableSize   = FlashNvramStorageInfo->VariableSize;
+  NvramInformationHobData->FtwWorkingSize = FlashNvramStorageInfo->FtwWorkingSize;
+  NvramInformationHobData->FtwSpareSize   = FlashNvramStorageInfo->FtwSpareSize;
 
   return HobStart;
 }

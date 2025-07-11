@@ -56,9 +56,10 @@ GetAndPrintBootinformation (
   IN VOID  *SharedBufAddress
   )
 {
-  EFI_SECURE_PARTITION_BOOT_INFO  *PayloadBootInfo;
-  EFI_SECURE_PARTITION_CPU_INFO   *PayloadCpuInfo;
-  UINTN                           Index;
+  EFI_SECURE_PARTITION_BOOT_INFO                 *PayloadBootInfo;
+  EFI_SECURE_PARTITION_CPU_INFO                  *PayloadCpuInfo;
+  EFI_SECURE_PARTITION_FLASH_NVRAM_STORAGE_INFO  *PayloadNvramInfo;
+  UINTN                                          Index;
 
   PayloadBootInfo = (EFI_SECURE_PARTITION_BOOT_INFO *)SharedBufAddress;
 
@@ -107,6 +108,8 @@ GetAndPrintBootinformation (
     DEBUG ((DEBUG_INFO, "LinearId        - 0x%x\n", PayloadCpuInfo[Index].LinearId));
     DEBUG ((DEBUG_INFO, "Flags           - 0x%x\n", PayloadCpuInfo[Index].Flags));
   }
+
+  PayloadNvramInfo = (EFI_SECURE_PARTITION_FLASH_NVRAM_STORAGE_INFO *)&PayloadCpuInfo[PayloadBootInfo->NumCpus];
 
   return PayloadBootInfo;
 }

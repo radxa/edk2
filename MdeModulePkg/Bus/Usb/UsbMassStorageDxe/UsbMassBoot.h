@@ -66,7 +66,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 //
 // Retry mass command times, set by experience
 //
-#define USB_BOOT_COMMAND_RETRY  5
+#define USB_BOOT_COMMAND_RETRY  1
 
 //
 // Wait for unit ready command, set by experience
