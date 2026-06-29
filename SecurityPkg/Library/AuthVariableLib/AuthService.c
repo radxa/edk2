@@ -325,7 +325,7 @@ UpdatePlatformMode (
     SecureBootMode = SECURE_BOOT_MODE_DISABLE;
   } else {
     if (mPlatformMode == USER_MODE) {
-      SecureBootMode = SECURE_BOOT_MODE_DISABLE;
+      SecureBootMode = SECURE_BOOT_MODE_ENABLE;
     } else if (mPlatformMode == SETUP_MODE) {
       SecureBootMode = SECURE_BOOT_MODE_DISABLE;
     } else {

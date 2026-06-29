@@ -207,7 +207,7 @@ AuthVariableLibInitialize (
     //
     // "SecureBootEnable" not exist, initialize it in USER_MODE.
     //
-    SecureBootEnable = SECURE_BOOT_DISABLE;
+    SecureBootEnable = SECURE_BOOT_ENABLE;
     Status           = AuthServiceInternalUpdateVariable (
                          EFI_SECURE_BOOT_ENABLE_NAME,
                          &gEfiSecureBootEnableDisableGuid,

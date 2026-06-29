@@ -2,6 +2,7 @@
   Capsule library runtime support.
 
   Copyright (c) 2016 - 2017, Intel Corporation. All rights reserved.<BR>
+  Copyright (c) 2024, Ampere Computing LLC. All rights reserved.<BR>
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -21,9 +22,9 @@
 #include <Library/MemoryAllocationLib.h>
 
 extern EFI_SYSTEM_RESOURCE_TABLE  *mEsrtTable;
-extern BOOLEAN                    mIsVirtualAddrConverted;
 EFI_EVENT                         mDxeRuntimeCapsuleLibVirtualAddressChangeEvent = NULL;
 EFI_EVENT                         mDxeRuntimeCapsuleLibReadyToBootEvent          = NULL;
+BOOLEAN                           mDxeCapsuleLibReadyToBootEvent                 = FALSE;
 
 /**
   Convert EsrtTable physical address to virtual address.
@@ -40,7 +41,6 @@ DxeCapsuleLibVirtualAddressChangeEvent (
   )
 {
   gRT->ConvertPointer (EFI_OPTIONAL_PTR, (VOID **)&mEsrtTable);
-  mIsVirtualAddrConverted = TRUE;
 }
 
 /**
@@ -95,6 +95,8 @@ DxeCapsuleLibReadyToBootEventNotify (
     //
     mEsrtTable->FwResourceCountMax = mEsrtTable->FwResourceCount;
   }
+
+  mDxeCapsuleLibReadyToBootEvent = TRUE;
 }
 
 /**

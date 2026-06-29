@@ -181,6 +181,7 @@ struct _USB_MASS_DEVICE {
   EFI_DISK_INFO_PROTOCOL      DiskInfo;
   USB_BOOT_INQUIRY_DATA       InquiryData;
   BOOLEAN                     Cdb16Byte;
+  BOOLEAN    InitializationFailed;
 };
 
 #endif

@@ -649,13 +649,16 @@ UsbMassInitNonLun (
   UsbMass->Transport           = Transport;
   UsbMass->Context             = Context;
 
+  if (UsbMass->InitializationFailed)
+      return EFI_DEVICE_ERROR;
   //
   // Initialize the media parameter data for EFI_BLOCK_IO_MEDIA of Block I/O Protocol.
   //
   Status = UsbMassInitMedia (UsbMass);
   if ((EFI_ERROR (Status)) && (Status != EFI_NO_MEDIA)) {
-    DEBUG ((DEBUG_ERROR, "UsbMassInitNonLun: UsbMassInitMedia (%r)\n", Status));
-    goto ON_ERROR;
+       DEBUG ((DEBUG_ERROR, "UsbMassInitNonLun: UsbMassInitMedia (%r)\n", Status));
+       UsbMass->InitializationFailed = TRUE;
+       goto ON_ERROR;
   }
 
   InitializeDiskInfo (UsbMass);
@@ -733,7 +736,7 @@ USBMassDriverBindingSupported (
   // protocol handler.
   //
   Status = UsbIo->UsbGetInterfaceDescriptor (UsbIo, &Interface);
-  if (EFI_ERROR (Status)) {
+  if (EFI_ERROR (Status)||Interface.AlternateSetting != 0) {
     goto ON_EXIT;
   }
 

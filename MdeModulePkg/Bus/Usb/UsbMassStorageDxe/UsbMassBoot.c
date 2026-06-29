@@ -247,32 +247,8 @@ UsbBootExecCmdWithRetry (
   )
 {
   EFI_STATUS  Status;
-  UINTN       Retry;
-  EFI_EVENT   TimeoutEvt;
 
-  Retry  = 0;
-  Status = EFI_SUCCESS;
-  Status = gBS->CreateEvent (
-                  EVT_TIMER,
-                  TPL_CALLBACK,
-                  NULL,
-                  NULL,
-                  &TimeoutEvt
-                  );
-  if (EFI_ERROR (Status)) {
-    return Status;
-  }
-
-  Status = gBS->SetTimer (TimeoutEvt, TimerRelative, EFI_TIMER_PERIOD_SECONDS (60));
-  if (EFI_ERROR (Status)) {
-    goto EXIT;
-  }
-
-  //
-  // Execute the cmd and retry if it fails.
-  //
-  while (EFI_ERROR (gBS->CheckEvent (TimeoutEvt))) {
-    Status = UsbBootExecCmd (
+  Status = UsbBootExecCmd (
                UsbMass,
                Cmd,
                CmdLen,
@@ -281,30 +257,6 @@ UsbBootExecCmdWithRetry (
                DataLen,
                Timeout
                );
-    if ((Status == EFI_SUCCESS) || (Status == EFI_NO_MEDIA)) {
-      break;
-    }
-
-    //
-    // If the sense data shows the drive is not ready, we need execute the cmd again.
-    // We limit the upper boundary to 60 seconds.
-    //
-    if (Status == EFI_NOT_READY) {
-      continue;
-    }
-
-    //
-    // If the status is other error, then just retry 5 times.
-    //
-    if (Retry++ >= USB_BOOT_COMMAND_RETRY) {
-      break;
-    }
-  }
-
-EXIT:
-  if (TimeoutEvt != NULL) {
-    gBS->CloseEvent (TimeoutEvt);
-  }
 
   return Status;
 }

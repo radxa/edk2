@@ -590,7 +590,19 @@ XhcSetRootHubPortFeature (
     case EfiUsbPortBhReset:
       DEBUG ((DEBUG_INFO, "UsbPortBhReset!\n"));
       //
-      //software initially writes the PORTSC register with the Warm
+      // Make sure Host Controller not halt before reset it
+      //
+      if (XhcIsHalt (Xhc)) {
+        Status = XhcRunHC (Xhc, XHC_GENERIC_TIMEOUT);
+
+        if (EFI_ERROR (Status)) {
+          DEBUG ((DEBUG_INFO, "XhcSetRootHubPortFeature :failed to start HC - %r\n", Status));
+          break;
+        }
+      }
+
+      //
+      // software initially writes the PORTSC register with the Warm
       // Port Reset (WPR) bit set to ‘1’. The Port Reset (PR) flag
       // shall be ‘1’ while Hot or Warm Reset is being executed.
       // The Port Reset Change (PRC) flag shall be set (‘1’)
@@ -738,6 +750,13 @@ XhcClearRootHubPortFeature (
       break;
 
     case EfiUsbPortPower:
+      //
+      // Clear Port power
+      //
+      State &= ~XHC_PORTSC_PP;
+      XhcWriteOpReg (Xhc, Offset, State);
+      break;
+
     case EfiUsbPortSuspendChange:
       //
       // Not supported or not related operation

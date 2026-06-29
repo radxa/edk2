@@ -3222,9 +3222,44 @@ XhcSetConfigCmd (
   MaxDci = 0;
 
   IfDesc = (USB_INTERFACE_DESCRIPTOR *)(ConfigDesc + 1);
+
+  //
+  // Calculate the end of the config descriptor to prevent pointer overflow
+  //
+  UINT8 *ConfigDescEnd = (UINT8 *)ConfigDesc + ConfigDesc->TotalLength;
+
   for (Index = 0; Index < ConfigDesc->NumInterfaces; Index++) {
+    //
+    // Safety check: ensure IfDesc is within bounds
+    //
+    if ((UINT8 *)IfDesc >= ConfigDescEnd) {
+      break;
+    }
+
+    //
+    // Add a loop counter to prevent infinite loop in case of malformed descriptors
+    //
+    UINT32 SkipCount = 0;
     while ((IfDesc->DescriptorType != USB_DESC_TYPE_INTERFACE) || (IfDesc->AlternateSetting != 0)) {
+      if (SkipCount++ > 100) {
+        goto Done;
+      }
+
+      //
+      // Check Length field validity before using it
+      //
+      if (IfDesc->Length == 0) {
+          goto Done;
+        }
+
       IfDesc = (USB_INTERFACE_DESCRIPTOR *)((UINTN)IfDesc + IfDesc->Length);
+
+      //
+      // Safety check after advancing pointer
+      //
+      if ((UINT8 *)IfDesc >= ConfigDescEnd - sizeof(USB_INTERFACE_DESCRIPTOR)) {
+        goto Done;
+      }
     }
 
     if (IfDesc->Length < sizeof (USB_INTERFACE_DESCRIPTOR)) {
@@ -3237,9 +3272,24 @@ XhcSetConfigCmd (
       MaxDci = Dci;
     }
 
+    //
+    // Check Length field validity before using it
+    //
+    if (IfDesc->Length == 0) {
+      goto Done;
+    }
+
     IfDesc = (USB_INTERFACE_DESCRIPTOR *)((UINTN)IfDesc + IfDesc->Length);
+
+    //
+    // Safety check after advancing pointer
+    //
+    if ((UINT8 *)IfDesc >= ConfigDescEnd - sizeof(USB_INTERFACE_DESCRIPTOR)) {
+      goto Done;
+    }
   }
 
+Done:
   InputContext->InputControlContext.Dword2 |= BIT0;
   InputContext->Slot.ContextEntries         = MaxDci;
   //
@@ -3313,9 +3363,44 @@ XhcSetConfigCmd64 (
   MaxDci = 0;
 
   IfDesc = (USB_INTERFACE_DESCRIPTOR *)(ConfigDesc + 1);
+
+  //
+  // Calculate the end of the config descriptor to prevent pointer overflow
+  //
+  UINT8 *ConfigDescEnd = (UINT8 *)ConfigDesc + ConfigDesc->TotalLength;
+
   for (Index = 0; Index < ConfigDesc->NumInterfaces; Index++) {
+    //
+    // Safety check: ensure IfDesc is within bounds
+    //
+    if ((UINT8 *)IfDesc >= ConfigDescEnd) {
+      break;
+    }
+
+    //
+    // Add a loop counter to prevent infinite loop in case of malformed descriptors
+    //
+    UINT32 SkipCount = 0;
     while ((IfDesc->DescriptorType != USB_DESC_TYPE_INTERFACE) || (IfDesc->AlternateSetting != 0)) {
+      if (SkipCount++ > 100) {
+        goto Done;
+      }
+
+      //
+      // Check Length field validity before using it
+      //
+      if (IfDesc->Length == 0) {
+        goto Done;
+      }
+
       IfDesc = (USB_INTERFACE_DESCRIPTOR *)((UINTN)IfDesc + IfDesc->Length);
+
+      //
+      // Safety check after advancing pointer
+      //
+      if ((UINT8 *)IfDesc >= ConfigDescEnd - sizeof(USB_INTERFACE_DESCRIPTOR)) {
+        goto Done;
+      }
     }
 
     if (IfDesc->Length < sizeof (USB_INTERFACE_DESCRIPTOR)) {
@@ -3328,9 +3413,24 @@ XhcSetConfigCmd64 (
       MaxDci = Dci;
     }
 
+    //
+    // Check Length field validity before using it
+    //
+    if (IfDesc->Length == 0) {
+      goto Done;
+    }
+
     IfDesc = (USB_INTERFACE_DESCRIPTOR *)((UINTN)IfDesc + IfDesc->Length);
+
+    //
+    // Safety check after advancing pointer
+    //
+    if ((UINT8 *)IfDesc >= ConfigDescEnd - sizeof(USB_INTERFACE_DESCRIPTOR)) {
+      goto Done;
+    }
   }
 
+Done:
   InputContext->InputControlContext.Dword2 |= BIT0;
   InputContext->Slot.ContextEntries         = MaxDci;
   //

@@ -43,9 +43,9 @@ extern USB_MASS_TRANSPORT  mUsbBotTransport;
 //
 // Usb Bot transport timeout, set by experience
 //
-#define USB_BOT_SEND_CBW_TIMEOUT      (3 * USB_MASS_1_SECOND)
-#define USB_BOT_RECV_CSW_TIMEOUT      (3 * USB_MASS_1_SECOND)
-#define USB_BOT_RESET_DEVICE_TIMEOUT  (3 * USB_MASS_1_SECOND)
+#define USB_BOT_SEND_CBW_TIMEOUT      (1 * USB_MASS_1_SECOND)
+#define USB_BOT_RECV_CSW_TIMEOUT      (1 * USB_MASS_1_SECOND)
+#define USB_BOT_RESET_DEVICE_TIMEOUT  (1 * USB_MASS_1_SECOND)
 
 #pragma pack(1)
 ///

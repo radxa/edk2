@@ -895,46 +895,65 @@ hub_port_warm_reset_required (
 
 EFI_STATUS
 UsbHubWarmResetPort (
-  IN USB_INTERFACE  *HubIf,
+  IN USB_INTERFACE  *RootIf,
   IN UINT8          Port
   )
 {
   EFI_USB_PORT_STATUS  PortState;
   UINTN                Index;
   EFI_STATUS           Status;
-  USB_HUB_API          *HubApi;
+  USB_BUS              *Bus;
 
-  HubApi = HubIf->HubApi;
-  Status = HubApi->SetPortFeature (HubIf, Port, EfiUsbPortBhReset);
+  Bus = RootIf->Device->Bus;
+
+  Status = UsbHcSetRootHubPortFeature (Bus, Port, EfiUsbPortBhReset);
   if (EFI_ERROR (Status)) {
-    DebugPrint (DEBUG_ERROR, "%a: %d,status=%d\n", __FUNCTION__, __LINE__, Status);
+    DEBUG ((DEBUG_ERROR, "%a: %d,status=%d\n", __FUNCTION__, __LINE__, Status));
     return Status;
   }
 
   //
-  // Drive the reset signal for worst 20ms. Check USB 2.0 Spec
+  // Drive the reset signal for at least 50ms. Check USB 2.0 Spec
   // section 7.1.7.5 for timing requirements.
   //
-  gBS->Stall (USB_SET_PORT_RESET_STALL);
+  gBS->Stall (USB_SET_ROOT_PORT_RESET_STALL);
 
+  Status = UsbHcClearRootHubPortFeature (Bus, Port, EfiUsbPortReset);
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "UsbRootHubResetPort: failed to clear reset on port %d\n", Port));
+    return Status;
+  }
+
+  gBS->Stall (USB_CLR_ROOT_PORT_RESET_STALL);
+
+  //
+  // USB host controller won't clear the RESET bit until
+  // reset is actually finished.
+  //
   ZeroMem (&PortState, sizeof (EFI_USB_PORT_STATUS));
 
   for (Index = 0; Index < USB_WAIT_PORT_STS_CHANGE_LOOP; Index++) {
-    Status = HubApi->GetPortStatus (HubIf, Port, &PortState);
+    Status = UsbHcGetRootHubPortStatus (Bus, Port, &PortState);
+
     if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_ERROR, "UsbRootHubResetPort: fail get port stat port %d\n", Port));
       return Status;
     }
 
-    if (!(PortState.PortStatus & USB_PORT_STAT_RESET) &&
-        (PortState.PortStatus & USB_PORT_STAT_CONNECTION))
-    {
-      return EFI_SUCCESS;
+    if (!USB_BIT_IS_SET (PortState.PortStatus, USB_PORT_STAT_RESET)) {
+      break;
     }
 
     gBS->Stall (USB_WAIT_PORT_STS_CHANGE_STALL);
   }
 
-  return EFI_TIMEOUT;
+  if (Index == USB_WAIT_PORT_STS_CHANGE_LOOP) {
+    DEBUG ((DEBUG_ERROR, "UsbRootHubResetPort: reset not finished in time on port %d\n", Port));
+    return EFI_TIMEOUT;
+  }
+
+  return EFI_SUCCESS;
 }
 
 /**
@@ -958,12 +977,12 @@ UsbEnumeratePort (
   USB_DEVICE           *Child;
   EFI_USB_PORT_STATUS  PortState;
   EFI_STATUS           Status;
+  UINT16               retry_num = 0;
+  const UINT16         RESET_NUM = 3;
 
   Child  = NULL;
   HubApi = HubIf->HubApi;
   UINT16        portstatus = 0;
-  UINT32        retry_num  = 0;
-  const UINT16  RESET_NUM  = 3;
 
   //
   // Host learns of the new device by polling the hub for port changes.
@@ -982,24 +1001,21 @@ UsbEnumeratePort (
   if ((PortState.PortChangeStatus & (USB_PORT_STAT_C_CONNECTION | USB_PORT_STAT_C_ENABLE | USB_PORT_STAT_C_OVERCURRENT | USB_PORT_STAT_C_RESET)) == 0) {
     portstatus = PortState.PortRawStatus;
     if ((hub_port_warm_reset_required (Port, portstatus)) &&  (!(portstatus & USB_PORT_STAT_C_CONNECTION))) {
-      //
-      // send warm reset,try to resume the port state to link, in some abnormal case,
-      // the link status is not right, so do this,retry several times, if port
-      // status's CONNECTION bit not set, we think that there is no device connnet, so return
-      //
       while (retry_num < RESET_NUM) {
         Status = UsbHubWarmResetPort (HubIf, Port);
         if (EFI_ERROR (Status)) {
-          DEBUG ((DEBUG_ERROR, "failed to warm reset %d\n", Status));
+          retry_num = RESET_NUM;
+          break;
         }
 
         Status = HubApi->GetPortStatus (HubIf, Port, &PortState);
+
         if (EFI_ERROR (Status)) {
-          DEBUG ((DEBUG_ERROR, "failed to get status %d\n", Status));
+          DEBUG ((DEBUG_ERROR, "UsbEnumeratePort: failed to get state of port %d\n", Port));
+          return Status;
         }
 
-        portstatus = PortState.PortRawStatus;
-        if (portstatus & USB_PORT_STAT_C_CONNECTION) {
+        if (PortState.PortRawStatus & USB_PORT_STAT_C_CONNECTION) {
           break;
         }
 
@@ -1007,7 +1023,8 @@ UsbEnumeratePort (
       }
 
       if (retry_num == RESET_NUM) {
-        return EFI_SUCCESS;
+	 HubApi->ClearPortFeature(HubIf, Port, EfiUsbPortPower);
+         return EFI_DEVICE_ERROR;
       }
     } else {
       return EFI_SUCCESS;

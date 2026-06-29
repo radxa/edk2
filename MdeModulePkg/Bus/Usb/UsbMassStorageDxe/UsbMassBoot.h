@@ -66,7 +66,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 //
 // Retry mass command times, set by experience
 //
-#define USB_BOOT_COMMAND_RETRY  5
+#define USB_BOOT_COMMAND_RETRY  1
 
 //
 // Wait for unit ready command, set by experience
@@ -80,7 +80,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 // USB CD-Rom and iPod devices are much slower than USB key when response
 // most of commands, So we set 5s as timeout here.
 //
-#define USB_BOOT_GENERAL_CMD_TIMEOUT  (5 * USB_MASS_1_SECOND)
+#define USB_BOOT_GENERAL_CMD_TIMEOUT  (2 * USB_MASS_1_SECOND)
 
 //
 // The required commands are INQUIRY, READ CAPACITY, TEST UNIT READY,
